@@ -23,19 +23,52 @@ const Import: React.FC = () => {
   const history = useHistory();
 
   async function handleUpload(): Promise<void> {
-    // const data = new FormData();
-
-    // TODO
-
     try {
-      // await api.post('/transactions/import', data);
+      // await api.post('/transactions/import', response);
+      const data = new FormData();
+
+      const file = uploadedFiles[0];
+
+      data.append('file', file.file);
+      const config = {
+        headers: { 'content-type': 'multipart/form-data' },
+      };
+
+      await api.post('/transactions/import', data, config);
+
+      const updatedFileList = uploadedFiles.slice(1);
+      console.log(updatedFileList);
+      if (updatedFileList.length === 0) {
+        setUploadedFiles([]);
+      }
+      setUploadedFiles(updatedFileList);
+      // const response = await Promise.all(
+      //   uploadedFiles.map(file => {
+      //     data.append('file', file.file);
+      //     const config = {
+      //       headers: { 'content-type': 'multipart/form-data' },
+      //     };
+
+      //     return api.post('/transactions/import', data, config);
+      //   }),
+      // );
+
+      // Promise.resolve(response);
     } catch (err) {
-      // console.log(err.response.error);
+      console.log(err.response.error);
     }
   }
 
   function submitFile(files: File[]): void {
-    // TODO
+    files.map(file => {
+      const newUploadedFile: FileProps = {
+        file,
+        name: file.name,
+        readableSize: filesize(file.size),
+      };
+
+      return setUploadedFiles([...uploadedFiles, newUploadedFile]);
+    });
   }
 
   return (
@@ -48,10 +81,17 @@ const Import: React.FC = () => {
           {!!uploadedFiles.length && <FileList files={uploadedFiles} />}
 
           <Footer>
-            <p>
-              <img src={alert} alt="Alert" />
-              Permitido apenas arquivos CSV
-            </p>
+            <div>
+              <p>
+                <img src={alert} alt="Alert" />
+                Permitido apenas arquivos CSV
+              </p>
+              <p>
+                <img src={alert} alt="Alert" />
+                Selecionar um arquivo por vez. Os arquivos serão colocados na
+                fila e enviados em ordem, um por vez
+              </p>
+            </div>
             <button onClick={handleUpload} type="button">
               Enviar
             </button>
